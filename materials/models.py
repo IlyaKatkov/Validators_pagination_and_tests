@@ -1,10 +1,12 @@
 from django.db import models
 NULLABLE = {'blank': True, 'null': True}
 
+from config import settings
 class Course(models.Model):
     name = models.CharField(max_length=100, verbose_name='название курса')
     description = models.TextField(**NULLABLE, verbose_name='описание курса')
     picture = models.ImageField(upload_to='course/', verbose_name='превью курса', **NULLABLE)
+    owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, verbose_name='автор курса', **NULLABLE)
 
     def __str__(self):
         return self.name
@@ -20,6 +22,7 @@ class Lesson(models.Model):
     picture = models.ImageField(upload_to='lesson_picture/', verbose_name='превью урока', **NULLABLE)
     video_link = models.URLField(verbose_name='ссылка на видео', **NULLABLE)
     course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='lessons', verbose_name='курс')
+    owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, verbose_name='автор урока', **NULLABLE)
 
     def __str__(self):
         return self.name
