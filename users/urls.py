@@ -13,4 +13,6 @@ urlpatterns = [
     path('payment/', views.PaymentListView.as_view(), name='payments'),
     path('token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    path('subs/', views.SubscriptionAPIView.as_view(), name='sub-list'),
+    path('subs/<int:pk>/', views.SubscriptionAPIView.as_view(), name='sub-create-delete')
 ]
