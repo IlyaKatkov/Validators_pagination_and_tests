@@ -19,9 +19,8 @@ class CourseTestCase(APITestCase):
             "description": "CourseDesc2",
             "user": self.user
         }
-        self.client.force_authenticate(user=self.user)
         responce = self.client.post(
-            '/course/',
+            reverse('materials: course_create'),
             data=data)
 
         self.assertEquals(
@@ -30,9 +29,9 @@ class CourseTestCase(APITestCase):
         )
 
     def test_course_destroy(self):
-        self.client.force_authenticate(user=self.user)
         responce = self.client.delete(
-            '/course/7/')
+            reverse('materials: course_delete')
+        )
 
         self.assertEquals(
             responce.status_code,
@@ -40,8 +39,9 @@ class CourseTestCase(APITestCase):
         )
 
     def test_get_list_lesson(self):
-        self.client.force_authenticate(user=self.user)
-        responce = self.client.get('/lesson/')
+        responce = self.client.get(
+            reverse('materials: lesson-list')
+        )
         self.assertEquals(responce.status_code,status.HTTP_200_OK)
 
     def test_create_lesson(self):
@@ -52,14 +52,18 @@ class CourseTestCase(APITestCase):
             "video_link": "youtube.com",
         }
         print(data)
-        self.client.force_authenticate(user=self.user)
-        responce = self.client.post('/course/', data=data)
+        responce = self.client.post(
+            reverse('materials: lesson-create'),
+            data=data
+        )
         print(responce)
         self.assertEquals(responce.status_code, status.HTTP_201_CREATED)
 
     def test_delete_lesson(self):
         self.client.force_authenticate(user=self.user)
-        responce = self.client.delete('/lesson/delete/1/')
+        responce = self.client.delete(
+            reverse('materials: lesson-delete')
+        )
         print(Lesson.objects.all())
 
         self.assertEquals(responce.status_code, status.HTTP_204_NO_CONTENT)
@@ -73,7 +77,9 @@ class SubscriptionAPITest(APITestCase):
 
     def test_create_subscription(self):
         data = {"user": self.user.pk, "course": self.course.pk}
-        self.client.force_authenticate(user=self.user)
-        responce = self.client.post('/subs/', data=data)
+        responce = self.client.post(
+            reverse('users: sub-create-delete'),
+            data=data
+        )
 
         self.assertEquals(responce.status_code,status.HTTP_200_OK)
