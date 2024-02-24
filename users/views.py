@@ -10,39 +10,30 @@ from rest_framework.exceptions import ValidationError
 from materials.models import Course
 from rest_framework import views
 from materials.paginators import Pagination
+from rest_framework.permissions import IsAuthenticated
+from materials.permissions import IsOwner
+
+class UserCreateAPIView(generics.CreateAPIView):
+    serializer_class = UserSerializer
+
+    def perform_create(self, serializer):
+        new_user = serializer.save()
+        password = serializer.data["password"]
+        new_user.set_password(password)
+        new_user.save()
 
 
-
-class UserViewSet(viewsets.ModelViewSet):
+class UserUpdateAPIView(generics.UpdateAPIView):
     serializer_class = UserSerializer
     queryset = User.objects.all()
-    pagination_class = Pagination
+    permission_classes = [IsAuthenticated, IsOwner]
 
-    def create(self, request, *args, **kwargs):
-        serializer = UserSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        self.perform_create(serializer)
-        headers = self.get_success_headers(serializer.data)
-
+    def perform_update(self, serializer):
+        new_user = serializer.save()
         password = serializer.data["password"]
-        user = User.objects.get(pk=serializer.data["id"])
-        user.set_password(password)
-        user.save()
+        new_user.set_password(password)
+        new_user.save()
 
-        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
-
-    def update(self, request, *args, **kwargs):
-        obj = self.get_object()
-        serializer = self.get_serializer(obj, data=request.data, partial=True)
-        serializer.is_valid(raise_exception=True)
-        self.perform_update(serializer)
-
-        password = serializer.validated_data.get('password')
-        if password:
-            obj.set_password(password)
-            obj.save()
-
-        return Response(serializer.data, status=status.HTTP_200_OK)
 
 class PaymentListView(generics.ListAPIView):
     queryset = Payments.objects.all()
@@ -53,7 +44,8 @@ class PaymentListView(generics.ListAPIView):
     pagination_class = Pagination
 
 
-class SubscriptionAPIView(views.APIView, Pagination):
+
+class SubscriptionDetailAPIView(views.APIView, Pagination):
 
     def get(self, *args, **kwargs):
         subs = Subscription.objects.filter(user=self.request.user)
@@ -61,13 +53,16 @@ class SubscriptionAPIView(views.APIView, Pagination):
         serializer = SubscriptionSerializer(page, many=True)
         return self.get_paginated_response(serializer.data)
 
+
+class SubscriptionCreateDeleteAPIView(views.APIView, Pagination):
+
     def post(self, *args, **kwargs):
         course = self.get_course_or_404(Course, course_id=kwargs.get('pk'))
         subs, _ = Subscription.objects.get_or_create(user=self.request.user, course=course)
         serializer = SubscriptionSerializer(subs)
         response = {
             'results': serializer.data,
-            'detail': f'Курс {course.title} сохранен в подписки'
+            'detail': f'Курс {course.title} сохранён в подписки'
         }
         return Response(response, status.HTTP_201_CREATED)
 
@@ -75,7 +70,7 @@ class SubscriptionAPIView(views.APIView, Pagination):
         course = self.get_course_or_404(Course, course_id=kwargs.get('pk'))
         Subscription.objects.filter(user=self.request.user, course=course).delete()
         response = {
-            'detail': f'Курс {course.title} удален из подписок',
+            'detail': f'Курс {course.title} удалён из подписок',
         }
         return Response(response, status.HTTP_204_NO_CONTENT)
 
@@ -93,3 +88,4 @@ class SubscriptionAPIView(views.APIView, Pagination):
         if isinstance(exc, Http404):
             return Response(exc.args[0], status=404)
         return super().handle_exception(exc)
+

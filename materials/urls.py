@@ -3,7 +3,6 @@ from rest_framework.routers import DefaultRouter
 from materials.views import CourseViewSet, LessonCreateAPIView, LessonListAPIView, LessonRetrieveAPIView, LessonDestroyAPIView, LessonUpdateAPIView
 from django.urls import path
 
-
 app_name = MaterialsConfig.name
 
 router = DefaultRouter()
